@@ -27,7 +27,7 @@ cat << 'EOF'
   ░░░░░░░░░   ░░░░░░  ░░░░ ░░░░░  ░░░░░░  ░░░░░      ░░░░░░░░    ░░░░░   ░░░░░░  ░░░░░     
                                                                                            
                                                                                              
-See https://alm.deltatre.it/tfs/D3Alm/SportDataComponents/_git/readme.generator for additional info
+See https://github.com/fabiolune/readme-generator for additional info
 ---
 
 EOF
