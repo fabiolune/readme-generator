@@ -28,8 +28,23 @@ To create a README for your Helm Chart project, from the root folder run:
 
 ```shell
 docker run \
-  --rm -v $(pwd):/work \
+  --rm  \
+  -v $(pwd):/work \
+  -w=/work \
   readme-generator:<version>
+  -v values.yaml \
+  -r README.md
+```
+
+To use the tool from the official registry run:
+```shell
+docker run \
+  --rm  \
+  -v $(pwd):/work \
+  -w=/work \
+  ghcr.io/fabiolune/readme-generator:latest \
+  -v values.yaml \
+  -r README.md
 ```
 
 > **NOTE**: `$(pwd)` works in Linux, WSL, and MacOS. In Windows, if Docker is configured to use the WSL environment, you need to use the full WSL shared path pointing to the current folder (e.g. `/mnt/d/Projects/YourProject`).
@@ -39,4 +54,5 @@ docker run \
 Where not otherwise specified, everything is licensed under the [MIT License](./LICENSE).  
 Please verify legal compliance if/when using this project as a whole or parts of it.  
 Documentation is for internal company use only.
+
 
