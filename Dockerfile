@@ -3,7 +3,7 @@ FROM alpine/git:2.36.3 AS source
 WORKDIR /generator
 RUN git clone https://github.com/bitnami-labs/readme-generator-for-helm.git
 
-FROM node:18-alpine
+FROM node:22-alpine
 
 RUN apk update && apk upgrade --no-cache
 RUN npm update -g npm
