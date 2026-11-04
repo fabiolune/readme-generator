@@ -1,7 +1,5 @@
 # README Generator
 
-
-
 - [README Generator](#readme-generator)
   - [Build locally](#build-locally)
   - [How to use the tool](#how-to-use-the-tool)
@@ -12,7 +10,6 @@
 It is based on the [readme-generator-for-helm](https://github.com/bitnami/readme-generator-for-helm) tool by Bitnami.
 
 It is designed to be used in CI/CD pipelines, but it can also be used locally.
-
 
 ## Build locally
 
@@ -31,28 +28,13 @@ docker run \
   --rm  \
   -v $(pwd):/work \
   -w=/work \
-  readme-generator:<version>
+  readme-generator:<version> \
   -v values.yaml \
   -r README.md
 ```
-
-To use the tool from the official registry run:
-```shell
-docker run \
-  --rm  \
-  -v $(pwd):/work \
-  -w=/work \
-  ghcr.io/fabiolune/readme-generator:latest \
-  -v values.yaml \
-  -r README.md
-```
-
-> **NOTE**: `$(pwd)` works in Linux, WSL, and MacOS. In Windows, if Docker is configured to use the WSL environment, you need to use the full WSL shared path pointing to the current folder (e.g. `/mnt/d/Projects/YourProject`).
 
 ## License
 
 Where not otherwise specified, everything is licensed under the [MIT License](./LICENSE).  
 Please verify legal compliance if/when using this project as a whole or parts of it.  
 Documentation is for internal company use only.
-
-
