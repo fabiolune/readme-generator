@@ -5,6 +5,8 @@ RUN git clone https://github.com/bitnami-labs/readme-generator-for-helm.git
 
 FROM node:24-alpine
 
+LABEL org.opencontainers.image.licenses="MIT AND Apache-2.0"
+
 RUN apk update && apk upgrade --no-cache
 RUN npm update -g npm
 WORKDIR /app

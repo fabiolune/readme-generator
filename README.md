@@ -36,5 +36,6 @@ docker run \
 ## License
 
 Where not otherwise specified, everything is licensed under the [MIT License](./LICENSE).  
-Please verify legal compliance if/when using this project as a whole or parts of it.  
-Documentation is for internal company use only.
+Please verify legal compliance if/when using this project as a whole or parts of it.
+
+The Docker image bundles [readme-generator-for-helm](https://github.com/bitnami/readme-generator-for-helm) by Bitnami, which is licensed under the [Apache License 2.0](https://github.com/bitnami/readme-generator-for-helm/blob/main/LICENSE.txt). Its license file is shipped inside the image at `/app/LICENSE.txt`.
