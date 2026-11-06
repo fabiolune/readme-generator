@@ -20,11 +20,12 @@ RUN adduser --disabled-password \
   --home /app \
   --gecos '' runner && chown -R runner /app
 
-COPY generate.sh /usr/bin/generate
-RUN chmod +x /usr/bin/generate
+COPY entrypoint.sh /usr/bin/entrypoint.sh
+
+RUN chmod +x /usr/bin/entrypoint.sh
 
 USER runner
 
 ENV PATH="/app/bin:$PATH"
 
-ENTRYPOINT ["generate"]
+ENTRYPOINT ["entrypoint.sh"]
