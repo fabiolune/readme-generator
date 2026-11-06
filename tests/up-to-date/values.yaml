@@ -1,0 +1,24 @@
+## @section Global parameters
+
+## @param replicaCount Number of replicas to deploy
+replicaCount: 1
+
+## @section Image parameters
+
+## @param image.registry Image registry
+## @param image.repository Image repository
+## @param image.tag Image tag
+## @param image.pullPolicy Image pull policy
+image:
+  registry: docker.io
+  repository: nginx
+  tag: "1.27"
+  pullPolicy: IfNotPresent
+
+## @section Service parameters
+
+## @param service.type Kubernetes service type
+## @param service.port Service port
+service:
+  type: ClusterIP
+  port: 80
