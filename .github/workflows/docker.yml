@@ -1,0 +1,117 @@
+name: docker
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  IMAGE: readme-generator
+  REGISTRY: ghcr.io
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set version
+        id: set-version
+        shell: bash
+        run: |
+          JSON_VERSION=$(docker run --rm -v "$(pwd):/repo" gittools/gitversion /repo /output json)
+          VERSION=$(echo $JSON_VERSION | jq -r '.SemVer')
+          PRERELEASE_TAG=$(echo $JSON_VERSION | jq -r '.PreReleaseTag')
+          MAJOR=$(echo $JSON_VERSION | jq -r '.Major')
+          MINOR=$(echo $JSON_VERSION | jq -r '.Minor')
+          is_stable=false
+          if [[ "$PRERELEASE_TAG" = "" ]]; then
+            is_stable=true
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "is-stable=$is_stable" >> $GITHUB_OUTPUT
+          echo "VERSION_MAJOR=$MAJOR" >> $GITHUB_OUTPUT
+          echo "VERSION_MINOR=$MINOR" >> $GITHUB_OUTPUT
+
+      - name: Build image
+        run: docker build . -t "$IMAGE"
+
+      - name: Smoke test
+        run: docker run --rm "$IMAGE" --help
+
+      - name: Validate up-to-date README
+        run: |
+          docker run --rm -v "$PWD":/work -w /work "$IMAGE" \
+            --validate -v tests/up-to-date/values.yaml -r tests/up-to-date/README.md
+
+      - name: Validate outdated README (must fail)
+        run: |
+          exit_code=0
+          docker run --rm -v "$PWD":/work -w /work "$IMAGE" \
+            --validate -v tests/outdated/values.yaml -r tests/outdated/README.md || exit_code=$?
+          if [ "$exit_code" -ne 1 ]; then
+            echo "Expected exit code 1, got $exit_code" >&2
+            exit 1
+          fi
+          echo "Validation failed as expected (exit code 1)"
+
+      - name: Missing options (must fail)
+        run: |
+          check() {
+            expected="$1"; shift
+            exit_code=0
+            output=$(docker run --rm -v "$PWD":/work -w /work "$IMAGE" "$@" 2>&1) || exit_code=$?
+            if [ "$exit_code" -ne 1 ]; then
+              echo "[$*] expected exit code 1, got $exit_code" >&2
+              return 1
+            fi
+            if ! echo "$output" | grep -qF -- "$expected"; then
+              echo "[$*] expected output to contain '$expected', got:" >&2
+              echo "$output" >&2
+              return 1
+            fi
+            echo "[$*] failed as expected: $expected"
+          }
+
+          check "missing -v" -r tests/up-to-date/README.md
+          check "missing -r" -v tests/up-to-date/values.yaml
+          check "missing -v" --validate
+          check "-v requires a value" -v
+          check "-r requires a value" -v tests/up-to-date/values.yaml -r
+
+      - name: Login to registry
+        if: github.event_name != 'pull_request'
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login "$REGISTRY" -u "${{ github.actor }}" --password-stdin
+
+      - name: Tag and push image
+        if: github.event_name != 'pull_request'
+        env:
+          IS_STABLE: ${{ steps.set-version.outputs.is-stable }}
+          MAJOR: ${{ steps.set-version.outputs.VERSION_MAJOR }}
+          MINOR: ${{ steps.set-version.outputs.VERSION_MINOR }}
+        run: |
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          TARGET="$REGISTRY/$OWNER/$IMAGE"
+
+          docker tag "$IMAGE" "$TARGET:$VERSION"
+          docker push "$TARGET:$VERSION"
+
+          # latest is always pushed
+          docker tag "$IMAGE" "$TARGET:latest"
+          docker push "$TARGET:latest"
+
+          if [ "$IS_STABLE" = "true" ]; then
+            docker tag "$IMAGE" "$TARGET:$MAJOR"
+            docker push "$TARGET:$MAJOR"
+            
+            docker tag "$IMAGE" "${TARGET}:${MAJOR}.${MINOR}"
+            docker push "${TARGET}:${MAJOR}.${MINOR}"
+          fi
